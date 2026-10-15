@@ -1,0 +1,61 @@
+name: Build DYPlus dylib
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  dylib:
+    runs-on: macos-15
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4.2.2
+
+      - name: Prepare Theos
+        uses: huami1314/theos-action@c5ddc7728cc1bcac2f07ab65fbc3022d25ce0c10
+        with:
+          theos-dir: ${{ runner.temp }}/theos
+
+      - name: Setup GNU Make
+        shell: bash
+        run: echo "$(brew --prefix make)/libexec/gnubin" >> "$GITHUB_PATH"
+
+      - name: Static preflight
+        shell: bash
+        run: |
+          test -f LICENSE
+          test -f DYPlusFeatureRegistry.m
+          test -f DYPlusCompatibilityViewController.m
+          test -f DYPlus.plist
+          git diff --check
+          bash -n scripts/export-dylib.sh
+
+      - name: Build standalone arm64 dylib
+        shell: bash
+        run: |
+          set -euo pipefail
+          make clean
+          make all ARCHS=arm64 SCHEME= FINALPACKAGE=1 INSTALL=0 -j"$(sysctl -n hw.ncpu)" 2>&1 | tee build.log
+
+      - name: Verify and export dylib
+        shell: bash
+        run: bash scripts/export-dylib.sh
+
+      - name: Upload DYPlus for TrollFools
+        uses: actions/upload-artifact@v4.6.2
+        with:
+          name: DYPlus-V1.0-arm64-TrollFools
+          path: dist/
+          if-no-files-found: error
+
+      - name: Upload build log
+        if: always()
+        uses: actions/upload-artifact@v4.6.2
+        with:
+          name: DYPlus-build-log
+          path: build.log
+          if-no-files-found: ignore
