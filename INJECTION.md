@@ -1,8 +1,8 @@
-# 抖音助手PLUS 1.1 适配预览：构建与注入说明
+# 抖音助手PLUS 1.1.1 定向诊断版：构建与注入说明
 
 ## 获取文件
 
-在 GitHub 仓库的 Actions 页面选择 `Build DYPlus dylib`，打开成功的运行记录，下载 `DouyinAssistantPLUS-V1.1-preview-arm64-TrollFools`。解压后选取 `DYPlus.dylib`，无需解开 deb。二进制名保留 DYPlus，抖音内名称为“抖音助手PLUS”。
+在 GitHub 仓库的 Actions 页面选择 `Build DYPlus dylib`，打开成功的运行记录，下载 `DouyinAssistantPLUS-V1.1.1-diagnostics-arm64-TrollFools`。解压后选取 `DYPlus.dylib`，无需解开 deb。二进制名保留 DYPlus，抖音内名称为“抖音助手PLUS”。
 
 也可以从 Actions 的 Run workflow 手动触发。上传源码时必须保留 `.github/workflows/build.yml`、`scripts/` 等子目录。
 
@@ -25,6 +25,6 @@
 
 ## 已知限制
 
-本版的自动续火花和密友隐藏为待适配项目，只能保存计划及名单。要继续接入，需要导出 `DouyinAssistantPLUS-interfaces.json`；操作见 `ASSISTANT-ADAPTATION.md`。
+本版的自动续火花和密友隐藏为待适配项目，只能保存计划及名单。要继续接入，请先启动页面采集，浏览四个页面后导出 `DouyinAssistantPLUS-interfaces-v2.json`；操作见 `ASSISTANT-ADAPTATION.md`。
 
 DYPlus 新模块控制目前是重构骨架，模块开关尚未连接历史 DYYY 功能。历史 Hook 仍可能执行；“恢复安全默认值”只关闭新模块设置，不是整个插件的安全模式。彻底回退需撤销注入。

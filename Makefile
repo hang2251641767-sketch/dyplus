@@ -39,7 +39,7 @@ TWEAK_NAME = DYPlus
 # 过滤文件使用 Theos 的标准命名 DYPlus.plist；仅注入一个 DYYY 衍生构建。
 
 DYPlus_FILES = DYYY.xm DYYYFloatClearButton.xm DYYYFloatSpeedButton.m DYYYSettings.xm DYYYABTestHook.xm DYYYLongPressPanel.xm DYYYSettingsHelper.m DYYYImagePickerDelegate.m DYYYBackupPickerDelegate.m DYYYSettingViewController.m DYYYBottomAlertView.m DYYYCustomInputView.m DYYYOptionsSelectionView.m DYYYIconOptionsDialogView.m DYYYAboutDialogView.m DYYYKeywordListView.m DYYYFilterSettingsView.m DYYYConfirmCloseView.m DYYYToast.m DYYYManager.m DYYYUtils.m CityManager.m AWMSafeDispatchTimer.m DYPlusFeatureRegistry.m DYPlusCompatibilityViewController.m
-DYPlus_FILES += DYYYAssistantPreferences.m DYYYAssistantDiagnostics.m DYYYAssistantViewController.m
+DYPlus_FILES += DYYYAssistantPreferences.m DYYYAssistantDiagnosticPlan.m DYYYAssistantDiagnostics.m DYYYAssistantViewController.m
 DYPlus_CFLAGS = -fobjc-arc -w
 DYPlus_LDFLAGS = -weak_framework AVFAudio
 DYPlus_FRAMEWORKS = CoreAudio

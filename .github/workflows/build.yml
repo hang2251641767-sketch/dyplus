@@ -47,6 +47,12 @@ jobs:
           xcrun --sdk macosx clang -fobjc-arc -fblocks -framework Foundation -I. DYYYAssistantPreferences.m tests/AssistantPreferencesTests.m -o "$RUNNER_TEMP/assistant-tests"
           "$RUNNER_TEMP/assistant-tests"
 
+      - name: Test focused diagnostic selection
+        shell: bash
+        run: |
+          xcrun --sdk macosx clang -fobjc-arc -fblocks -framework Foundation -I. DYYYAssistantDiagnosticPlan.m tests/AssistantDiagnosticPlanTests.m -o "$RUNNER_TEMP/diagnostic-tests"
+          "$RUNNER_TEMP/diagnostic-tests"
+
       - name: Verify and export dylib
         shell: bash
         run: bash scripts/export-dylib.sh
@@ -54,7 +60,7 @@ jobs:
       - name: Upload DYPlus for TrollFools
         uses: actions/upload-artifact@v4.6.2
         with:
-          name: DouyinAssistantPLUS-V1.1-preview-arm64-TrollFools
+          name: DouyinAssistantPLUS-V1.1.1-diagnostics-arm64-TrollFools
           path: dist/
           if-no-files-found: error
 

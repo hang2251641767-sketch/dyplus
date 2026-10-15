@@ -7,13 +7,15 @@
   <img src="https://img.shields.io/badge/App-%E6%8A%96%E9%9F%B3%2036.5.0-black?style=flat&labelColor=black" />
 </p>
 
-# 抖音助手PLUS 1.1 适配预览（DYPlus / DYYY 重构分支）
+# 抖音助手PLUS 1.1.1 定向诊断版（DYPlus / DYYY 重构分支）
 
 本工程只重构上游 DYYY，不整合其他插件。目标环境为抖音 **40.3.0**、iPhone 14 Pro / iOS 16.5.1，通过 TrollFools 注入。工程仓库：https://github.com/hang2251641767-sketch/dyplus
 
 抖音内名称已改为“抖音助手PLUS”。本次加入续火花内容/时间/好友配置、密友名单管理和接口诊断导出。**自动发送、检测火花、一键导入火花好友、四处实际隐藏尚未接入**，执行开关禁用。下一步请参照 [适配说明](ASSISTANT-ADAPTATION.md) 导出目标应用接口。
 
 用户已反馈 V1.0 原有功能在目标设备可使用；新增预览功能仍需单独验证。
+
+1.1.1 修复上一版诊断被无方法 Swift 类挤占预算的问题：指定接口优先完整导出，附相关类名索引；增加用户手动启动的3分钟页面类型采集，便于记录消息/粉丝/互关/分享的数据源。详细操作见 [适配说明](ASSISTANT-ADAPTATION.md)。这仍是诊断版，自动发送与隐藏开关继续禁用。
 
 1.1 预览版已通过 [构建与配置测试](https://github.com/hang2251641767-sketch/dyplus/actions/runs/38672369613)，产物对应源码 `688fb574b29b47d10449c8430397870d4cdcd21a`。这只验证编译、配置逻辑和静态检查，不代表发送与隐藏功能已完成。
 
@@ -189,7 +191,7 @@ DYYY 可以通过远程 JSON 文件批量应用设置。默认下载地址在 `D
 
 ## 构建与打包
 
-GitHub Actions 在 macOS runner 上准备 Theos，直接构建 arm64 动态库，并上传 `DouyinAssistantPLUS-V1.1-preview-arm64-TrollFools`。下载并解压后可取得 `DYPlus.dylib`，无需从 deb 提取。CI 通过表示编译、配置测试和静态依赖检查成功，真机行为仍需验证。
+GitHub Actions 在 macOS runner 上准备 Theos，直接构建 arm64 动态库，并上传 `DouyinAssistantPLUS-V1.1.1-diagnostics-arm64-TrollFools`。下载并解压后可取得 `DYPlus.dylib`，无需从 deb 提取。CI 通过表示编译、配置/定向选择测试和静态依赖检查成功，真机行为仍需验证。
 
 本地构建需要 macOS、Xcode Command Line Tools 和 Theos：
 

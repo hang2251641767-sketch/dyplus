@@ -14,6 +14,8 @@
   - `DYYYAssistantPreferences.(h/m)`：续火花计划与好友名单草稿；不负责发送。
   - `DYYYAssistantViewController.(h/m)`：配置和手动诊断入口；未适配功能不可启用。
   - `DYYYAssistantDiagnostics.(h/m)`：只导出接口元数据，不读取联系人、聊天或凭证。
+  - `DYYYAssistantDiagnosticPlan.(h/m)`：定向目标与确定性排序；必选接口不占补充预算。
+  - 页面采集只能由用户启动，限时3分钟，进入后台停止；不得自动启用或读取列表内容。
 - **入口 Hook / 控制器**
   - `DYYY.xm`、`DYYYSettings.xm`：全局 Hook、设置页 Hook。
   - `DYYYSettingViewController.(h/m)`：自定义设置主界面。

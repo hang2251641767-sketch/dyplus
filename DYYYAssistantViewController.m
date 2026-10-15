@@ -58,7 +58,7 @@
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView { return 3; }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
-    if ([self.mode isEqualToString:@"home"]) return section == 0 ? 2 : 1;
+    if ([self.mode isEqualToString:@"home"]) return section == 0 ? 2 : (section == 1 ? 3 : 1);
     if (section == 0) return [self.mode isEqualToString:@"streak"] ? 3 : 1;
     if (section == 1) return 2;
     return [self.store contactsForList:self.mode].count;
@@ -72,7 +72,7 @@
 - (NSString *)tableView:(UITableView *)tableView titleForFooterInSection:(NSInteger)section {
     if ([self.mode isEqualToString:@"home"]) {
         if (section == 0) return @"本版可配置计划和名单；实际自动发送、火花检测与四处隐藏尚未接入。原有功能继续保留。";
-        if (section == 1) return @"先依次打开消息、粉丝、互关、分享好友页面，再返回这里导出。文件仅含类名、方法签名和列表代理类型，不含聊天内容、好友名单或登录凭证；由你自行分享。";
+        if (section == 1) return @"先点开始采集，关闭设置后依次打开消息、粉丝、互关和分享好友页面，3分钟内回到这里导出。进入后台会停止；可手动停止或清空。仅记录接口和列表类型，不读取聊天、好友资料或登录凭证。";
         return @"关闭历史 Hook 需要通过 TrollFools 撤销注入。";
     }
     if (section == 0 && [self.mode isEqualToString:@"streak"]) return @"内容、手机当地时间和好友均可修改。发送接口待适配，当前不会发送消息；未来应用被 iOS 挂起时也不能保证定时执行。";
@@ -96,8 +96,16 @@
             cell.textLabel.text = indexPath.row == 0 ? @"自动续火花" : @"密友";
             cell.detailTextLabel.text = @"名单与配置可用，实际功能待接入";
         } else if (indexPath.section == 1) {
-            cell.textLabel.text = self.exporting ? @"正在生成诊断…" : @"导出接口诊断文件";
-            cell.detailTextLabel.text = @"仅导出接口类型，不读取个人内容";
+            if (indexPath.row == 0) {
+                cell.textLabel.text = DYYYAssistantDiagnostics.isCapturing ? @"停止页面采集" : @"开始页面采集（3分钟）";
+                cell.detailTextLabel.text = DYYYAssistantDiagnostics.captureStatus;
+            } else if (indexPath.row == 1) {
+                cell.textLabel.text = self.exporting ? @"正在生成诊断…" : @"停止并导出定向诊断 v2";
+                cell.detailTextLabel.text = @"优先导出关键接口及已采集的列表类型";
+            } else {
+                cell.textLabel.text = @"清空本次采集记录";
+                cell.detailTextLabel.text = @"仅清除内存中的类型记录，不修改好友或设置";
+            }
         } else cell.textLabel.text = @"兼容性与安全回退";
     } else if (indexPath.section == 0) {
         if ([self.mode isEqualToString:@"streak"]) {
@@ -161,12 +169,27 @@
         if (indexPath.section == 0) {
             [self.navigationController pushViewController:[[DYYYAssistantViewController alloc] initWithMode:indexPath.row == 0 ? @"streak" : @"privacy"] animated:YES];
         } else if (indexPath.section == 1 && !self.exporting) {
-            self.exporting = YES;
-            [self.tableView reloadData];
-            [DYYYAssistantDiagnostics exportFromController:self completion:^{
-                weakSelf.exporting = NO;
-                [weakSelf.tableView reloadData];
-            }];
+            if (indexPath.row == 0) {
+                if (DYYYAssistantDiagnostics.isCapturing) {
+                    [DYYYAssistantDiagnostics stopCapture];
+                    [self.tableView reloadData];
+                } else {
+                    [DYYYAssistantDiagnostics startCapture];
+                    [self dismissViewControllerAnimated:YES completion:^{
+                        [DYYYUtils showToast:@"采集已开始，请关闭设置后浏览四个页面"];
+                    }];
+                }
+            } else if (indexPath.row == 1) {
+                self.exporting = YES;
+                [self.tableView reloadData];
+                [DYYYAssistantDiagnostics exportFromController:self completion:^{
+                    weakSelf.exporting = NO;
+                    [weakSelf.tableView reloadData];
+                }];
+            } else {
+                [DYYYAssistantDiagnostics clearCapture];
+                [self.tableView reloadData];
+            }
         } else if (indexPath.section == 2) {
             [self.navigationController pushViewController:[[DYPlusCompatibilityViewController alloc] init] animated:YES];
         }
