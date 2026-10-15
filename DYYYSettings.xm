@@ -14,6 +14,7 @@
 #import "DYYYOptionsSelectionView.h"
 
 #import "DYYYConstants.h"
+#import "DYYYAssistantViewController.h"
 #import "DYYYSettingsHelper.h"
 #import "DYYYUtils.h"
 
@@ -99,14 +100,16 @@ static void DYYYRemoveRemoteConfigObserver(void) {
         UIButton *dyyyBtn = [UIButton buttonWithType:UIButtonTypeSystem];
         dyyyBtn.tag = 232323;
         dyyyBtn.accessibilityLabel = @"DYYYSettingsButton";
-        [dyyyBtn setTitle:@"DYYY" forState:UIControlStateNormal];
+        [dyyyBtn setTitle:DYYY_NAME forState:UIControlStateNormal];
+        dyyyBtn.titleLabel.adjustsFontSizeToFitWidth = YES;
+        dyyyBtn.titleLabel.minimumScaleFactor = 0.7;
 
         UIColor *titleColor = [DYYYUtils isDarkMode] ? [UIColor whiteColor] : [UIColor blackColor];
         [dyyyBtn setTitleColor:titleColor forState:UIControlStateNormal];
 
         dyyyBtn.titleLabel.font = [UIFont boldSystemFontOfSize:15];
         CGRect frame = self.frame;
-        dyyyBtn.frame = CGRectMake(frame.origin.x + frame.size.width - 40 - 2, 8, 60, 32);
+        dyyyBtn.frame = CGRectMake(frame.origin.x + frame.size.width - 112, 8, 110, 32);
         dyyyBtn.autoresizingMask = UIViewAutoresizingFlexibleLeftMargin;
         dyyyBtn.layer.cornerRadius = 8;
         dyyyBtn.clipsToBounds = YES;
@@ -150,14 +153,16 @@ static void DYYYRemoveRemoteConfigObserver(void) {
         UIButton *dyyyBtn = [UIButton buttonWithType:UIButtonTypeSystem];
         dyyyBtn.tag = 232323;
         dyyyBtn.accessibilityLabel = @"DYYYSettingsButton";
-        [dyyyBtn setTitle:@"DYYY" forState:UIControlStateNormal];
+        [dyyyBtn setTitle:DYYY_NAME forState:UIControlStateNormal];
+        dyyyBtn.titleLabel.adjustsFontSizeToFitWidth = YES;
+        dyyyBtn.titleLabel.minimumScaleFactor = 0.7;
 
         UIColor *titleColor = [DYYYUtils isDarkMode] ? [UIColor whiteColor] : [UIColor blackColor];
         [dyyyBtn setTitleColor:titleColor forState:UIControlStateNormal];
 
         dyyyBtn.titleLabel.font = [UIFont boldSystemFontOfSize:15];
         CGRect frame = self.frame;
-        dyyyBtn.frame = CGRectMake(frame.origin.x + frame.size.width - 60 - 10 - 2, 8, 60, 32);
+        dyyyBtn.frame = CGRectMake(frame.origin.x + frame.size.width - 122, 8, 110, 32);
         dyyyBtn.autoresizingMask = UIViewAutoresizingFlexibleLeftMargin;
         dyyyBtn.layer.cornerRadius = 8;
         dyyyBtn.clipsToBounds = YES;
@@ -253,6 +258,19 @@ void showDYYYSettingsVC(UIViewController *rootVC, BOOL hasAgreed) {
     mainSection.sectionHeaderHeight = 40;
     mainSection.type = 0;
     NSMutableArray<AWESettingItemModel *> *mainItems = [NSMutableArray array];
+
+    AWESettingItemModel *assistantItem = [[%c(AWESettingItemModel) alloc] init];
+    assistantItem.identifier = @"DYYYAssistantExtensions";
+    assistantItem.title = @"续火花与密友（适配中）";
+    assistantItem.type = 0;
+    assistantItem.cellType = 26;
+    assistantItem.colorStyle = 0;
+    assistantItem.svgIconImageName = @"ic_gearsimplify_outlined_20";
+    assistantItem.isEnable = YES;
+    assistantItem.cellTappedBlock = ^{
+      [DYYYAssistantViewController presentFrom:topView()];
+    };
+    [mainItems addObject:assistantItem];
 
     // 创建基本设置分类项
     AWESettingItemModel *basicSettingItem = [[%c(AWESettingItemModel) alloc] init];
@@ -3570,9 +3588,10 @@ speedSettingsItem.detail = trimmedText;
     aboutItem.colorStyle = 0;
     aboutItem.isEnable = YES;
     aboutItem.cellTappedBlock = ^{
-      [DYYYSettingsHelper showAboutDialog:@"关于DYYY"
+      [DYYYSettingsHelper showAboutDialog:@"关于抖音助手PLUS"
                                   message:@"版本: " DYYY_VERSION @"\n\n"
-                                          @"感谢使用DYYY\n\n"
+                                          @"感谢使用抖音助手PLUS\n\n"
+                                          @"工程地址 https://github.com/hang2251641767-sketch/dyplus\n\n"
                                           @"感谢huami开源\n\n"
                                           @"@维他入我心 基于DYYY二次开发\n\n"
                                           @"感谢huami group中群友的支持赞助\n\n"
@@ -3658,7 +3677,7 @@ speedSettingsItem.detail = trimmedText;
         newSection.itemArray = @[ dyyyItem ];
         newSection.type = 0;
         newSection.sectionHeaderHeight = 40;
-        newSection.sectionHeaderTitle = @"DYYY";
+        newSection.sectionHeaderTitle = DYYY_NAME;
 
         NSMutableArray *newSections = [NSMutableArray arrayWithArray:originalSections];
         [newSections insertObject:newSection atIndex:0];

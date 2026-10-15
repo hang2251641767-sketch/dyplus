@@ -9,7 +9,7 @@
 
 - (void)viewDidLoad {
     [super viewDidLoad];
-    self.title = @"DYPlus 兼容性控制";
+    self.title = @"抖音助手PLUS兼容性";
     self.tableView.backgroundColor = UIColor.systemGroupedBackgroundColor;
     // Subtitle 样式用于显示模块说明；不要用 registerClass 覆盖 cell style。
 }

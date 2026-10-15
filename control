@@ -1,6 +1,6 @@
 Package: com.dyplus.tweak
-Name: DYPlus
-Version: 1.0.0
+Name: 抖音助手PLUS
+Version: 1.1.0~preview
 Description: DYYY 的模块化重构实验构建；编译与抖音 40.3.0 真机适配状态见 CI 和审查记录。
 Homepage: https://github.com/hang2251641767-sketch/dyplus
 Section: Tweaks

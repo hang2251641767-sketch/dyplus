@@ -10,6 +10,10 @@
 - **AwemeHeaders**：项目依赖的抖音私有类、Category 声明、宏定义都集中在 `AwemeHeaders.h` 中，供整个 tweak 引入。
 
 ## 类路径速查（按 UI/功能分组）
+- **抖音助手PLUS 扩展（接口适配中）**
+  - `DYYYAssistantPreferences.(h/m)`：续火花计划与好友名单草稿；不负责发送。
+  - `DYYYAssistantViewController.(h/m)`：配置和手动诊断入口；未适配功能不可启用。
+  - `DYYYAssistantDiagnostics.(h/m)`：只导出接口元数据，不读取联系人、聊天或凭证。
 - **入口 Hook / 控制器**
   - `DYYY.xm`、`DYYYSettings.xm`：全局 Hook、设置页 Hook。
   - `DYYYSettingViewController.(h/m)`：自定义设置主界面。

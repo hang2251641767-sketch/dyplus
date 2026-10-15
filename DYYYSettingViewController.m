@@ -3,6 +3,7 @@
 #import <UIKit/UIKit.h>
 #import "DYYYConstants.h"
 #import "DYPlusCompatibilityViewController.h"
+#import "DYYYAssistantViewController.h"
 
 typedef NS_ENUM(NSInteger, DYYYSettingItemType) { DYYYSettingItemTypeSwitch, DYYYSettingItemTypeTextField, DYYYSettingItemTypePicker };
 
@@ -53,8 +54,8 @@ typedef NS_ENUM(NSInteger, DYYYSettingItemType) { DYYYSettingItemTypeSwitch, DYY
 - (void)viewDidLoad {
     [super viewDidLoad];
 
-    self.title = @"DYYY设置";
-    self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithTitle:@"兼容性"
+    self.title = DYYY_SETTINGS_NAME;
+    self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithTitle:@"助手功能"
                                                                                 style:UIBarButtonItemStylePlain
                                                                                target:self
                                                                                action:@selector(dyplus_openCompatibility:)];
@@ -64,6 +65,19 @@ typedef NS_ENUM(NSInteger, DYYYSettingItemType) { DYYYSettingItemTypeSwitch, DYY
     [self setupAppearance];
     [self setupBlurEffect];
     [self setupTableView];
+    if (!self.navigationController) {
+        UIButton *assistantButton = [UIButton buttonWithType:UIButtonTypeSystem];
+        [assistantButton setTitle:@"助手功能" forState:UIControlStateNormal];
+        assistantButton.translatesAutoresizingMaskIntoConstraints = NO;
+        [assistantButton addTarget:self action:@selector(dyplus_openCompatibility:) forControlEvents:UIControlEventTouchUpInside];
+        [self.view addSubview:assistantButton];
+        [NSLayoutConstraint activateConstraints:@[
+            [assistantButton.topAnchor constraintEqualToAnchor:self.view.safeAreaLayoutGuide.topAnchor constant:8],
+            [assistantButton.leadingAnchor constraintEqualToAnchor:self.view.leadingAnchor constant:20],
+            [assistantButton.heightAnchor constraintEqualToConstant:36]
+        ]];
+        self.tableView.contentInset = UIEdgeInsetsMake(54, 0, 0, 0);
+    }
     [self setupDefaultValues];
     [self setupSettingItems];
     [self setupSectionTitles];
@@ -72,8 +86,7 @@ typedef NS_ENUM(NSInteger, DYYYSettingItemType) { DYYYSettingItemTypeSwitch, DYY
 }
 
 - (void)dyplus_openCompatibility:(__unused UIBarButtonItem *)sender {
-    DYPlusCompatibilityViewController *controller = [[DYPlusCompatibilityViewController alloc] init];
-    [self.navigationController pushViewController:controller animated:YES];
+    [DYYYAssistantViewController presentFrom:self];
 }
 
 - (void)setupDefaultValues {

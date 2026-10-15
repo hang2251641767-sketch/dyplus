@@ -25,4 +25,5 @@ git rev-parse HEAD > dist/source-commit.txt
 git -C "$THEOS" rev-parse HEAD > dist/theos-commit.txt
 cp LICENSE dist/LICENSE
 cp INJECTION.md dist/使用说明.md
+cp ASSISTANT-ADAPTATION.md dist/扩展功能适配说明.md
 (cd dist && shasum -a 256 DYPlus.dylib > SHA256SUMS.txt)

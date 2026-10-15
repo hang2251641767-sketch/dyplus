@@ -7,9 +7,13 @@
   <img src="https://img.shields.io/badge/App-%E6%8A%96%E9%9F%B3%2036.5.0-black?style=flat&labelColor=black" />
 </p>
 
-# DYPlus V1.0（DYYY 重构分支）
+# 抖音助手PLUS 1.1 适配预览（DYPlus / DYYY 重构分支）
 
 本工程只重构上游 DYYY，不整合其他插件。目标环境为抖音 **40.3.0**、iPhone 14 Pro / iOS 16.5.1，通过 TrollFools 注入。工程仓库：https://github.com/hang2251641767-sketch/dyplus
+
+抖音内名称已改为“抖音助手PLUS”。本次加入续火花内容/时间/好友配置、密友名单管理和接口诊断导出。**自动发送、检测火花、一键导入火花好友、四处实际隐藏尚未接入**，执行开关禁用。下一步请参照 [适配说明](ASSISTANT-ADAPTATION.md) 导出目标应用接口。
+
+用户已反馈 V1.0 原有功能在目标设备可使用；新增预览功能仍需单独验证。
 
 独立 arm64 `DYPlus.dylib` 已于 2026-10-15 通过 GitHub Actions 编译、链接、签名、架构与依赖检查：[成功构建 #2](https://github.com/hang2251641767-sketch/dyplus/actions/runs/38670031403)。对应源码提交为 `184dc2213469ce10884be08f982e8c4a1ca96f57`。详见 [构建与注入说明](INJECTION.md)。抖音 40.3.0 真机适配仍未验证。
 
@@ -28,7 +32,7 @@
 
 ## 功能亮点
 - 通过 **双指长按** 或 **抖音设置** 进入设置界面
-- 设置页右上角提供“兼容性”入口，可逐模块关闭并恢复安全默认值
+- 设置页提供“助手功能”入口，含续火花与密友配置、诊断导出和原有兼容性页面
 - 支持远程 JSON 批量下发配置
 - 解析多种下载接口字段（视频、图片、音频、封面）
 

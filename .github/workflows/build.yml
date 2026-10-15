@@ -41,6 +41,12 @@ jobs:
           make clean
           make all ARCHS=arm64 SCHEME= FINALPACKAGE=1 INSTALL=0 -j"$(sysctl -n hw.ncpu)" 2>&1 | tee build.log
 
+      - name: Test assistant configuration
+        shell: bash
+        run: |
+          xcrun --sdk macosx clang -fobjc-arc -fblocks -framework Foundation -I. DYYYAssistantPreferences.m tests/AssistantPreferencesTests.m -o "$RUNNER_TEMP/assistant-tests"
+          "$RUNNER_TEMP/assistant-tests"
+
       - name: Verify and export dylib
         shell: bash
         run: bash scripts/export-dylib.sh
@@ -48,7 +54,7 @@ jobs:
       - name: Upload DYPlus for TrollFools
         uses: actions/upload-artifact@v4.6.2
         with:
-          name: DYPlus-V1.0-arm64-TrollFools
+          name: DouyinAssistantPLUS-V1.1-preview-arm64-TrollFools
           path: dist/
           if-no-files-found: error
 
