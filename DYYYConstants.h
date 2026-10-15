@@ -4,7 +4,7 @@
 #define DYYY_NAME @"抖音助手PLUS"
 #define DYYY_SETTINGS_NAME @"抖音助手PLUS设置"
 
-#define DYYY_VERSION @"1.1.1-diagnostics"
+#define DYYY_VERSION @"1.1.2-diagnostics-fix"
 
 // 默认的远程 ABTest 配置地址
 #define DYYY_DEFAULT_ABTEST_URL @"https://github.com/Nathalie-Annis/AWEABTestDataPatch/releases/latest/download/ABTestDataPatch_A.json"

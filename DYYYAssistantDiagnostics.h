@@ -9,6 +9,9 @@ NS_ASSUME_NONNULL_BEGIN
 + (void)clearCapture;
 + (BOOL)isCapturing;
 + (NSString *)captureStatus;
++ (NSString *)exportStatus;
++ (void)saveExistingFromController:(UIViewController *)controller;
++ (void)saveSnapshotOnlyWithCompletion:(void (^)(void))completion;
 + (void)exportFromController:(UIViewController *)controller completion:(void (^)(void))completion;
 @end
 

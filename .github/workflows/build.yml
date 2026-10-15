@@ -57,10 +57,16 @@ jobs:
         shell: bash
         run: bash scripts/export-dylib.sh
 
+      - name: Test diagnostic recovery and runtime inspection
+        shell: bash
+        run: |
+          xcrun --sdk macosx clang -fobjc-arc -fblocks -framework Foundation -I. DYYYAssistantRuntimeInspector.m DYYYAssistantDiagnosticArchive.m tests/AssistantDiagnosticSafetyTests.m -o "$RUNNER_TEMP/diagnostic-safety-tests"
+          "$RUNNER_TEMP/diagnostic-safety-tests"
+
       - name: Upload DYPlus for TrollFools
         uses: actions/upload-artifact@v4.6.2
         with:
-          name: DouyinAssistantPLUS-V1.1.1-diagnostics-arm64-TrollFools
+          name: DouyinAssistantPLUS-V1.1.2-diagnostics-fix-arm64-TrollFools
           path: dist/
           if-no-files-found: error
 

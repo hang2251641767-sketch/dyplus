@@ -58,7 +58,7 @@
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView { return 3; }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
-    if ([self.mode isEqualToString:@"home"]) return section == 0 ? 2 : (section == 1 ? 3 : 1);
+    if ([self.mode isEqualToString:@"home"]) return section == 0 ? 2 : (section == 1 ? 6 : 1);
     if (section == 0) return [self.mode isEqualToString:@"streak"] ? 3 : 1;
     if (section == 1) return 2;
     return [self.store contactsForList:self.mode].count;
@@ -72,7 +72,7 @@
 - (NSString *)tableView:(UITableView *)tableView titleForFooterInSection:(NSInteger)section {
     if ([self.mode isEqualToString:@"home"]) {
         if (section == 0) return @"本版可配置计划和名单；实际自动发送、火花检测与四处隐藏尚未接入。原有功能继续保留。";
-        if (section == 1) return @"先点开始采集，关闭设置后依次打开消息、粉丝、互关和分享好友页面，3分钟内回到这里导出。进入后台会停止；可手动停止或清空。仅记录接口和列表类型，不读取聊天、好友资料或登录凭证。";
+        if (section == 1) return @"采集四个页面后生成诊断，再单独点击保存到文件。生成前先保存页面快照，并逐类保存检查点；若闪退，重开后可直接保存已有诊断和阶段记录，无需重新扫描。仅记录接口类型。";
         return @"关闭历史 Hook 需要通过 TrollFools 撤销注入。";
     }
     if (section == 0 && [self.mode isEqualToString:@"streak"]) return @"内容、手机当地时间和好友均可修改。发送接口待适配，当前不会发送消息；未来应用被 iOS 挂起时也不能保证定时执行。";
@@ -100,8 +100,17 @@
                 cell.textLabel.text = DYYYAssistantDiagnostics.isCapturing ? @"停止页面采集" : @"开始页面采集（3分钟）";
                 cell.detailTextLabel.text = DYYYAssistantDiagnostics.captureStatus;
             } else if (indexPath.row == 1) {
-                cell.textLabel.text = self.exporting ? @"正在生成诊断…" : @"停止并导出定向诊断 v2";
-                cell.detailTextLabel.text = @"优先导出关键接口及已采集的列表类型";
+                cell.textLabel.text = self.exporting ? @"正在生成诊断…" : @"停止并生成诊断（先保存）";
+                cell.detailTextLabel.text = @"只检查指定接口，不扫描全进程或展开Swift类型";
+            } else if (indexPath.row == 2) {
+                cell.textLabel.text = @"保存已有诊断到文件";
+                cell.detailTextLabel.text = @"直接打开文件保存器，不重新检查接口";
+            } else if (indexPath.row == 3) {
+                cell.textLabel.text = @"只生成页面快照（排障）";
+                cell.detailTextLabel.text = @"不检查任何接口，用于单独验证保存路径";
+            } else if (indexPath.row == 4) {
+                cell.textLabel.text = @"复制上次导出阶段";
+                cell.detailTextLabel.text = DYYYAssistantDiagnostics.exportStatus;
             } else {
                 cell.textLabel.text = @"清空本次采集记录";
                 cell.detailTextLabel.text = @"仅清除内存中的类型记录，不修改好友或设置";
@@ -186,6 +195,18 @@
                     weakSelf.exporting = NO;
                     [weakSelf.tableView reloadData];
                 }];
+            } else if (indexPath.row == 2) {
+                [DYYYAssistantDiagnostics saveExistingFromController:self];
+            } else if (indexPath.row == 3) {
+                self.exporting = YES;
+                [self.tableView reloadData];
+                [DYYYAssistantDiagnostics saveSnapshotOnlyWithCompletion:^{
+                    weakSelf.exporting = NO;
+                    [weakSelf.tableView reloadData];
+                }];
+            } else if (indexPath.row == 4) {
+                UIPasteboard.generalPasteboard.string = DYYYAssistantDiagnostics.exportStatus;
+                [DYYYUtils showToast:@"导出阶段已复制"];
             } else {
                 [DYYYAssistantDiagnostics clearCapture];
                 [self.tableView reloadData];

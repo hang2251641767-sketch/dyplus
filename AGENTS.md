@@ -15,6 +15,9 @@
   - `DYYYAssistantViewController.(h/m)`：配置和手动诊断入口；未适配功能不可启用。
   - `DYYYAssistantDiagnostics.(h/m)`：只导出接口元数据，不读取联系人、聊天或凭证。
   - `DYYYAssistantDiagnosticPlan.(h/m)`：定向目标与确定性排序；必选接口不占补充预算。
+  - `DYYYAssistantRuntimeInspector.(h/m)`：只使用运行时C接口检查指定类，跳过Swift；不得将Class作为容器值或对其发消息。
+  - `DYYYAssistantDiagnosticArchive.(h/m)`：原子保存诊断和处理阶段，保留检查点；与系统文件保存器分离。
+  - 1.1.2 禁用全进程Class枚举及关联类型展开；导出前不得重新遍历页面。
   - 页面采集只能由用户启动，限时3分钟，进入后台停止；不得自动启用或读取列表内容。
 - **入口 Hook / 控制器**
   - `DYYY.xm`、`DYYYSettings.xm`：全局 Hook、设置页 Hook。

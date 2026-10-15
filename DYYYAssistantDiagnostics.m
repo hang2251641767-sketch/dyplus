@@ -2,6 +2,8 @@
 #import "DYYYConstants.h"
 #import "DYYYUtils.h"
 #import "DYYYAssistantDiagnosticPlan.h"
+#import "DYYYAssistantRuntimeInspector.h"
+#import "DYYYAssistantDiagnosticArchive.h"
 #import <objc/runtime.h>
 
 @interface DYYYAssistantDiagnostics ()
@@ -12,57 +14,10 @@
 @property(nonatomic, assign) BOOL scanTruncated;
 @property(nonatomic, assign) BOOL recordsTruncated;
 @property(nonatomic, copy) NSString *stopReason;
+@property(nonatomic, assign) BOOL exportInProgress;
 @end
 
 @implementation DYYYAssistantDiagnostics
-
-#pragma mark - 类型元数据
-
-+ (BOOL)isRelevantName:(NSString *)name {
-    NSString *lower = name.lowercaseString;
-    for (NSString *keyword in @[@"conversation", @"session", @"streak", @"spark", @"flame", @"fire", @"friend", @"follower", @"following", @"mutual", @"relation", @"shareuser", @"sharepanel", @"sharecontact", @"contact", @"chat", @"sendmessage", @"textmessage", @"immessage", @"messagecenter", @"inbox", @"messagelist"]) {
-        if ([lower containsString:keyword]) return YES;
-    }
-    return [name isEqualToString:@"AWEUserModel"] || [name hasPrefix:@"BIM"] || [name hasPrefix:@"BDIM"] ||
-           [name hasPrefix:@"TTIM"] || [name hasPrefix:@"AWEIM"];
-}
-
-+ (NSArray *)methodsForClass:(Class)cls {
-    unsigned int count = 0;
-    Method *methods = class_copyMethodList(cls, &count);
-    NSMutableArray *rows = [NSMutableArray array];
-    // 定向接口不截断方法列表；只记录签名，不执行任何私有方法。
-    for (unsigned int i = 0; i < count; i++) {
-        const char *encoding = method_getTypeEncoding(methods[i]);
-        [rows addObject:@{@"selector":NSStringFromSelector(method_getName(methods[i])),
-                          @"encoding":encoding ? @(encoding) : @""}];
-    }
-    free(methods);
-    return rows;
-}
-
-+ (NSDictionary *)metadataForClass:(Class)cls {
-    NSMutableArray *properties = [NSMutableArray array];
-    unsigned int count = 0;
-    objc_property_t *items = class_copyPropertyList(cls, &count);
-    for (unsigned int i = 0; i < count; i++) {
-        const char *attributes = property_getAttributes(items[i]);
-        [properties addObject:@{@"name":@(property_getName(items[i])), @"attributes":attributes ? @(attributes) : @""}];
-    }
-    free(items);
-    NSMutableArray *ivars = [NSMutableArray array];
-    Ivar *fields = class_copyIvarList(cls, &count);
-    for (unsigned int i = 0; i < count; i++) {
-        const char *name = ivar_getName(fields[i]);
-        const char *encoding = ivar_getTypeEncoding(fields[i]);
-        [ivars addObject:@{@"name":name ? @(name) : @"", @"encoding":encoding ? @(encoding) : @""}];
-    }
-    free(fields);
-    Class superclass = class_getSuperclass(cls);
-    return @{@"class":NSStringFromClass(cls), @"superclass":superclass ? NSStringFromClass(superclass) : @"",
-             @"instanceMethods":[self methodsForClass:cls], @"classMethods":[self methodsForClass:object_getClass(cls)],
-             @"properties":properties, @"ivars":ivars};
-}
 
 #pragma mark - UIKit 类型快照
 
@@ -192,134 +147,116 @@
     [NSNotificationCenter.defaultCenter removeObserver:self];
 }
 
-#pragma mark - 手动导出
+#pragma mark - 分阶段保存与文件出口
 
-+ (BOOL)hasObjCMetadata:(Class)cls {
-    unsigned int instanceCount = 0, classCount = 0;
-    Method *instanceMethods = class_copyMethodList(cls, &instanceCount);
-    Method *classMethods = class_copyMethodList(object_getClass(cls), &classCount);
-    free(instanceMethods);
-    free(classMethods);
-    return instanceCount > 0 || classCount > 0;
++ (DYYYAssistantDiagnosticArchive *)archive {
+    NSURL *base = [NSFileManager.defaultManager URLsForDirectory:NSDocumentDirectory inDomains:NSUserDomainMask].firstObject;
+    if (!base) base = [NSURL fileURLWithPath:NSTemporaryDirectory() isDirectory:YES];
+    return [[DYYYAssistantDiagnosticArchive alloc] initWithDirectory:[base URLByAppendingPathComponent:@"AssistantPLUSDiagnostics" isDirectory:YES]];
 }
 
-+ (NSArray<NSString *> *)relatedNames:(NSDictionary *)metadata {
-    NSMutableOrderedSet *names = [NSMutableOrderedSet orderedSet];
-    if ([metadata[@"superclass"] length]) [names addObject:metadata[@"superclass"]];
-    NSRegularExpression *expression = [NSRegularExpression regularExpressionWithPattern:@"@\"([^\"<]+)" options:0 error:nil];
-    for (NSString *key in @[@"properties", @"ivars"]) {
-        for (NSDictionary *field in metadata[key]) {
-            NSString *encoding = field[@"attributes"] ?: field[@"encoding"] ?: @"";
-            NSTextCheckingResult *match = [expression firstMatchInString:encoding options:0 range:NSMakeRange(0, encoding.length)];
-            if (match.numberOfRanges > 1) [names addObject:[encoding substringWithRange:[match rangeAtIndex:1]]];
-        }
-    }
-    return names.array;
++ (NSString *)exportStatus {
+    NSDictionary *state = self.archive.lastStage;
+    NSString *stage = [state[@"stage"] isKindOfClass:NSString.class] ? state[@"stage"] : @"尚未生成";
+    NSString *name = [state[@"class"] isKindOfClass:NSString.class] ? state[@"class"] : @"";
+    return name.length ? [NSString stringWithFormat:@"%@ · %@", stage, name] : stage;
+}
+
++ (void)saveExistingFromController:(UIViewController *)controller {
+    NSAssert(NSThread.isMainThread, @"文件选择器必须在主线程");
+    if (self.sharedRecorder.exportInProgress) { [DYYYUtils showToast:@"请等待生成结束"]; return; }
+    DYYYAssistantDiagnosticArchive *archive = self.archive;
+    if (!archive.hasReport) { [DYYYUtils showToast:@"尚无诊断文件，请先生成"]; return; }
+    if (!controller.view.window || controller.presentedViewController) { [DYYYUtils showToast:@"页面暂不可用，请稍后重试"]; return; }
+    NSMutableArray *urls = [NSMutableArray arrayWithObject:archive.reportURL];
+    if ([NSFileManager.defaultManager fileExistsAtPath:archive.stateURL.path]) [urls addObject:archive.stateURL];
+    // 独立的系统文件保存入口，不自动调用分享扩展。
+    UIDocumentPickerViewController *picker = [[UIDocumentPickerViewController alloc] initForExportingURLs:urls asCopy:YES];
+    picker.modalPresentationStyle = UIModalPresentationFormSheet;
+    [controller presentViewController:picker animated:YES completion:nil];
 }
 
 + (void)exportFromController:(UIViewController *)controller completion:(void (^)(void))completion {
+    [self generateSnapshotOnly:NO completion:completion];
+}
+
++ (void)saveSnapshotOnlyWithCompletion:(void (^)(void))completion {
+    [self generateSnapshotOnly:YES completion:completion];
+}
+
++ (void)generateSnapshotOnly:(BOOL)snapshotOnly completion:(void (^)(void))completion {
     if (!NSThread.isMainThread) {
-        dispatch_async(dispatch_get_main_queue(), ^{ [self exportFromController:controller completion:completion]; });
+        dispatch_async(dispatch_get_main_queue(), ^{ [self generateSnapshotOnly:snapshotOnly completion:completion]; });
         return;
     }
-    NSDictionary *currentSnapshot = [self viewSnapshot];
-    if (self.isCapturing) { [self.sharedRecorder sample]; [self stopCapture]; }
-    NSArray *captured = [self.sharedRecorder.capturedLists copy];
-    NSArray *views = currentSnapshot[@"lists"];
+    DYYYAssistantDiagnostics *recorder = self.sharedRecorder;
+    if (recorder.exportInProgress) { if (completion) completion(); [DYYYUtils showToast:@"正在生成，请稍候"]; return; }
+    recorder.exportInProgress = YES;
+    // 停止后只复制内存记录，不在按钮点击时重新遍历UIKit视图。
+    if (self.isCapturing) [self stopCapture];
+    NSArray *captured = [recorder.capturedLists copy];
     NSDictionary *capture = @{@"status":self.captureStatus, @"recordCount":@(captured.count),
-                              @"viewScanTruncated":@(self.sharedRecorder.scanTruncated),
-                              @"recordLimitReached":@(self.sharedRecorder.recordsTruncated)};
+                              @"viewScanTruncated":@(recorder.scanTruncated), @"recordLimitReached":@(recorder.recordsTruncated)};
     NSDictionary *version = @{@"appVersion":[NSBundle.mainBundle objectForInfoDictionaryKey:@"CFBundleShortVersionString"] ?: @"未知",
                               @"appBuild":[NSBundle.mainBundle objectForInfoDictionaryKey:@"CFBundleVersion"] ?: @"未知",
                               @"systemVersion":UIDevice.currentDevice.systemVersion, @"pluginVersion":DYYY_VERSION};
-    __weak UIViewController *weakController = controller;
+    DYYYAssistantDiagnosticArchive *archive = self.archive;
     dispatch_async(dispatch_get_global_queue(QOS_CLASS_UTILITY, 0), ^{
-        NSMutableArray *classes = [NSMutableArray array];
-        NSMutableSet *included = [NSMutableSet set];
-        NSMutableDictionary<NSString *, id> *available = [NSMutableDictionary dictionary];
-        NSMutableArray *candidates = [NSMutableArray array];
-        NSMutableArray *classIndex = [NSMutableArray array];
-        unsigned int count = 0;
-        Class *loaded = objc_copyClassList(&count);
-        for (unsigned int i = 0; i < count; i++) {
-            NSString *name = NSStringFromClass(loaded[i]);
-            const char *image = class_getImageName(loaded[i]);
-            NSString *imagePath = image ? @(image) : @"";
-            if (![imagePath hasPrefix:NSBundle.mainBundle.bundlePath]) continue;
-            available[name] = loaded[i];
-            if ([self isRelevantName:name] || [DYYYAssistantDiagnosticPlan priorityForName:name] > 0) [classIndex addObject:name];
-            if ([DYYYAssistantDiagnosticPlan priorityForName:name] > 0) {
-                [candidates addObject:@{@"name":name, @"hasObjCMetadata":@([self hasObjCMetadata:loaded[i]])}];
+        @autoreleasepool {
+            BOOL saved = NO, complete = NO;
+            NSString *failure = nil;
+            NSError *error = nil;
+            NSMutableArray *interfaces = [NSMutableArray array];
+            NSMutableDictionary *report = [@{@"schema":@3, @"metadataOnly":@YES, @"complete":@NO,
+                @"mode":snapshotOnly ? @"snapshot-only" : @"safe-targeted",
+                @"version":version, @"capture":capture, @"capturedListViewTypes":captured,
+                @"broadClassScanEnabled":@NO, @"relatedTypeExpansionEnabled":@NO, @"interfaces":interfaces} mutableCopy];
+            @try {
+                // 在检查第一个Class前，先保存能独立取回的轻量快照。
+                saved = [archive saveReport:report error:&error];
+                if (!saved) failure = @"snapshot-write-failed";
+                if (saved && ![archive saveStage:@"snapshot-saved" className:@"" error:&error]) failure = @"stage-write-failed";
+                if (saved && !failure && !snapshotOnly) {
+                    NSMutableOrderedSet *required = [NSMutableOrderedSet orderedSetWithArray:DYYYAssistantDiagnosticPlan.targetClassNames];
+                    for (NSDictionary *row in captured) {
+                        for (NSString *key in @[@"view", @"dataSource", @"delegate", @"owner"]) {
+                            if ([row[key] isKindOfClass:NSString.class] && [row[key] length]) [required addObject:row[key]];
+                        }
+                        [required addObjectsFromArray:row[@"visibleCellClasses"] ?: @[]];
+                    }
+                    report[@"requestedClassNames"] = required.array;
+                    report[@"metadataSelectionLimited"] = @(required.count > 96);
+                    NSTimeInterval started = NSProcessInfo.processInfo.systemUptime;
+                    NSArray *names = [required.array subarrayWithRange:NSMakeRange(0, MIN(required.count, 96UL))];
+                    for (NSString *name in names) {
+                        @autoreleasepool {
+                            if (NSProcessInfo.processInfo.systemUptime - started > 20) { failure = @"time-budget-reached"; break; }
+                            if (![archive saveStage:@"inspecting" className:name error:&error]) { failure = @"stage-write-failed"; break; }
+                            // 不枚举全进程，不将Class当作ObjC对象放入字典，不展开Swift类型。
+                            NSDictionary *metadata = [DYYYAssistantRuntimeInspector inspectClassNamed:name];
+                            [interfaces addObject:metadata];
+                            report[@"lastProcessedClass"] = name;
+                            if (![archive saveReport:report error:&error]) { failure = @"checkpoint-write-failed"; break; }
+                        }
+                    }
+                }
+                if (saved && !failure) {
+                    report[@"complete"] = @YES;
+                    complete = [archive saveReport:report error:&error];
+                    if (!complete) failure = @"final-write-failed";
+                }
+            } @catch (NSException *exception) {
+                failure = [@"exception:" stringByAppendingString:exception.name ?: @"unknown"];
+            } @finally {
+                [archive saveStage:complete ? @"complete" : (failure ?: @"incomplete") className:@"" error:nil];
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    recorder.exportInProgress = NO;
+                    if (completion) completion();
+                    [DYYYUtils showToast:complete ? @"诊断已保存，请点击“保存已有诊断到文件”" :
+                        (saved ? @"生成未完成，已有快照可单独保存" : @"保存失败，请查看上次导出阶段")];
+                });
             }
         }
-        NSMutableOrderedSet<NSString *> *required = [NSMutableOrderedSet orderedSetWithArray:DYYYAssistantDiagnosticPlan.targetClassNames];
-        for (NSDictionary *row in [captured arrayByAddingObjectsFromArray:views]) {
-            for (NSString *key in @[@"view", @"dataSource", @"delegate", @"owner"]) {
-                if ([row[key] length]) [required addObject:row[key]];
-            }
-            [required addObjectsFromArray:row[@"visibleCellClasses"] ?: @[]];
-        }
-        NSMutableArray *targetLookup = [NSMutableArray array];
-        for (NSString *name in DYYYAssistantDiagnosticPlan.targetClassNames) {
-            Class cls = (Class)available[name] ?: objc_lookUpClass(name.UTF8String);
-            [targetLookup addObject:@{@"class":name, @"foundAtExport":@(cls != Nil)}];
-        }
-        NSArray *planned = [DYYYAssistantDiagnosticPlan selectedNamesFromCandidates:candidates requiredNames:required.array supplementaryLimit:150];
-        NSMutableArray *pending = [required.array mutableCopy];
-        NSMutableSet *scheduled = [NSMutableSet setWithArray:pending];
-        NSUInteger cursor = 0, relatedAdded = 0;
-        BOOL relatedLimited = NO;
-        while (cursor < pending.count) {
-            NSString *name = pending[cursor++];
-            Class cls = (Class)available[name] ?: objc_lookUpClass(name.UTF8String);
-            if (!cls || [included containsObject:name]) continue;
-            NSMutableDictionary *metadata = [[self metadataForClass:cls] mutableCopy];
-            metadata[@"selection"] = [required containsObject:name] ? @"required" : @"related";
-            [classes addObject:metadata];
-            [included addObject:name];
-            for (NSString *related in [self relatedNames:metadata]) {
-                if (!available[related] || [scheduled containsObject:related]) continue;
-                if (relatedAdded >= 600) { relatedLimited = YES; continue; }
-                [pending addObject:related];
-                [scheduled addObject:related];
-                relatedAdded++;
-            }
-        }
-        NSUInteger eligibleSupplementary = 0;
-        for (NSDictionary *candidate in candidates) {
-            if ([candidate[@"hasObjCMetadata"] boolValue] && ![required containsObject:candidate[@"name"]]) eligibleSupplementary++;
-        }
-        for (NSString *name in planned) {
-            if ([included containsObject:name] || !available[name]) continue;
-            NSMutableDictionary *metadata = [[self metadataForClass:(Class)available[name]] mutableCopy];
-            metadata[@"selection"] = @"supplementary";
-            [classes addObject:metadata];
-            [included addObject:name];
-        }
-        free(loaded);
-        NSDictionary *report = @{@"schema":@2, @"metadataOnly":@YES, @"version":version,
-                                 @"targetLookup":targetLookup, @"requiredMetadataTruncated":@NO,
-                                 @"relatedMetadataLimited":@(relatedLimited), @"supplementarySelectionLimited":@(eligibleSupplementary > 150),
-                                 @"candidateClassIndex":[classIndex sortedArrayUsingSelector:@selector(compare:)],
-                                 @"classNameIndexTruncated":@NO, @"capture":capture,
-                                 @"capturedListViewTypes":captured, @"listViewTypes":views,
-                                 @"currentViewScanTruncated":currentSnapshot[@"scanTruncated"], @"interfaces":classes};
-        NSError *error = nil;
-        NSData *data = [NSJSONSerialization dataWithJSONObject:report options:NSJSONWritingPrettyPrinted error:&error];
-        NSURL *url = [NSURL fileURLWithPath:[NSTemporaryDirectory() stringByAppendingPathComponent:@"DouyinAssistantPLUS-interfaces-v2.json"]];
-        BOOL saved = data && [data writeToURL:url options:NSDataWritingAtomic error:&error];
-        dispatch_async(dispatch_get_main_queue(), ^{
-            completion();
-            UIViewController *presenter = weakController;
-            if (!saved || !presenter.view.window) {
-                [DYYYUtils showToast:saved ? @"页面已关闭，请重新导出" : @"诊断导出失败，请重试"];
-                return;
-            }
-            UIActivityViewController *share = [[UIActivityViewController alloc] initWithActivityItems:@[url] applicationActivities:nil];
-            share.popoverPresentationController.sourceView = presenter.view;
-            share.popoverPresentationController.sourceRect = CGRectMake(CGRectGetMidX(presenter.view.bounds), 80, 1, 1);
-            [presenter presentViewController:share animated:YES completion:nil];
-        });
     });
 }
 @end
