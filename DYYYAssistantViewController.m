@@ -3,7 +3,7 @@
 #import "DYYYAssistantDiagnostics.h"
 #import "DYYYConstants.h"
 #import "DYYYCustomInputView.h"
-#import "DYYYToast.h"
+#import "DYYYUtils.h"
 #import "DYPlusCompatibilityViewController.h"
 
 @interface DYYYAssistantViewController ()
@@ -147,7 +147,7 @@
                 DYYYAssistantViewController *page = weakSelf;
                 if (!page) return;
                 BOOL saved = [page.store putIdentifier:uid nickname:name inList:page.mode];
-                [DYYYToast showToast:saved ? @"名单已保存，实际功能待接入" : @"标识或备注格式不正确"];
+                [DYYYUtils showToast:saved ? @"名单已保存，实际功能待接入" : @"标识或备注格式不正确"];
                 [page.tableView reloadData];
             }];
         });
@@ -175,13 +175,13 @@
         if (indexPath.row == 1) {
             [self inputWithTitle:@"续火花内容（1～500字）" value:self.store.message confirm:^(NSString *text) {
                 NSString *value = [text stringByTrimmingCharactersInSet:NSCharacterSet.whitespaceAndNewlineCharacterSet];
-                if (!value.length || value.length > 500) { [DYYYToast showToast:@"请输入1～500字"]; return; }
+                if (!value.length || value.length > 500) { [DYYYUtils showToast:@"请输入1～500字"]; return; }
                 weakSelf.store.message = value;
                 [weakSelf.tableView reloadData];
             }];
         } else if (indexPath.row == 2) {
             [self inputWithTitle:@"每日时间（24小时制 HH:mm）" value:self.store.timeString confirm:^(NSString *time) {
-                if (![weakSelf.store setTimeString:time]) [DYYYToast showToast:@"时间格式不正确，例如09:00"];
+                if (![weakSelf.store setTimeString:time]) [DYYYUtils showToast:@"时间格式不正确，例如09:00"];
                 [weakSelf.tableView reloadData];
             }];
         }

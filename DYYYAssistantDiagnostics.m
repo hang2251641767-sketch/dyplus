@@ -1,6 +1,6 @@
 #import "DYYYAssistantDiagnostics.h"
 #import "DYYYConstants.h"
-#import "DYYYToast.h"
+#import "DYYYUtils.h"
 #import <objc/runtime.h>
 
 @implementation DYYYAssistantDiagnostics
@@ -132,7 +132,7 @@
             completion();
             UIViewController *presenter = weakController;
             if (!saved || !presenter.view.window) {
-                [DYYYToast showToast:saved ? @"页面已关闭，请重新导出" : @"诊断导出失败，请重试"];
+                [DYYYUtils showToast:saved ? @"页面已关闭，请重新导出" : @"诊断导出失败，请重试"];
                 return;
             }
             UIActivityViewController *share = [[UIActivityViewController alloc] initWithActivityItems:@[url] applicationActivities:nil];
