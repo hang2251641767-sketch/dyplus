@@ -17,6 +17,8 @@
 
 1.1.1 修复上一版诊断被无方法 Swift 类挤占预算的问题：指定接口优先完整导出，附相关类名索引；增加用户手动启动的3分钟页面类型采集，便于记录消息/粉丝/互关/分享的数据源。详细操作见 [适配说明](ASSISTANT-ADAPTATION.md)。这仍是诊断版，自动发送与隐藏开关继续禁用。
 
+1.1.1 已通过 [CI 编译、两组测试及产物检查](https://github.com/hang2251641767-sketch/dyplus/actions/runs/38674810834)。动态库对应源码 `b1e469d85755e77bd24d780ddf2f593525230b0c`；限时采集和新诊断导出的真机效果待验证。
+
 1.1 预览版已通过 [构建与配置测试](https://github.com/hang2251641767-sketch/dyplus/actions/runs/38672369613)，产物对应源码 `688fb574b29b47d10449c8430397870d4cdcd21a`。这只验证编译、配置逻辑和静态检查，不代表发送与隐藏功能已完成。
 
 独立 arm64 `DYPlus.dylib` 已于 2026-10-15 通过 GitHub Actions 编译、链接、签名、架构与依赖检查：[成功构建 #2](https://github.com/hang2251641767-sketch/dyplus/actions/runs/38670031403)。对应源码提交为 `184dc2213469ce10884be08f982e8c4a1ca96f57`。详见 [构建与注入说明](INJECTION.md)。抖音 40.3.0 真机适配仍未验证。
