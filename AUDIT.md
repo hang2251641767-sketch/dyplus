@@ -18,7 +18,11 @@
 
 ## 未完成/不能虚报
 
-- 当前环境为 Windows，未执行 Theos/macOS `make package`，因此没有本地编译成功结论。
+2026-10-15 云端构建结果：源码提交 `184dc2213469ce10884be08f982e8c4a1ca96f57` 已在 macOS CI 运行 `make clean` 和 `make all ARCHS=arm64 SCHEME= FINALPACKAGE=1 INSTALL=0`，编译、链接、签名及导出成功。[构建记录](https://github.com/hang2251641767-sketch/dyplus/actions/runs/38670031403)
+
+产物 SHA256：`a39f1b95301b8c66c9070014910c376880e1de7ec4c38d582f089f3cdd9a6e18`。仅发现系统加载依赖；`otool -L` 首项的 `/Library/MobileSubstrate/DynamicLibraries/DYPlus.dylib` 是动态库自身的安装标识，不是外部 Substrate 依赖。没有进行真机注入测试。
+
+- 当前本地环境为 Windows，没有本地编译成功结论；上述成功证据来自 GitHub Actions 的 `make all`，未验证 deb 打包。
 - 未拥有 iPhone 14 Pro / iOS 16.5.1 + 抖音 40.3.0 + TrollFools 注入测试链路，不能声称真机适配或功能兼容。
 - 新模块开关尚未接管历史 DYYY Hook，当前为模块化设置骨架；旧 Hook 仍可能执行。新模块回退不是全插件安全模式。
 

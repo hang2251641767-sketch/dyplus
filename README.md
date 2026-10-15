@@ -11,7 +11,7 @@
 
 本工程只重构上游 DYYY，不整合其他插件。目标环境为抖音 **40.3.0**、iPhone 14 Pro / iOS 16.5.1，通过 TrollFools 注入。工程仓库：https://github.com/hang2251641767-sketch/dyplus
 
-GitHub Actions 可尝试编译独立的 arm64 `DYPlus.dylib`，并上传构建日志、依赖清单与校验值。详见 [构建与注入说明](INJECTION.md)。当前尚未声明编译成功或 40.3.0 真机适配完成。
+独立 arm64 `DYPlus.dylib` 已于 2026-10-15 通过 GitHub Actions 编译、链接、签名、架构与依赖检查：[成功构建 #2](https://github.com/hang2251641767-sketch/dyplus/actions/runs/38670031403)。对应源码提交为 `184dc2213469ce10884be08f982e8c4a1ca96f57`。详见 [构建与注入说明](INJECTION.md)。抖音 40.3.0 真机适配仍未验证。
 
 模块注册表目前为重构骨架，开关尚未接管历史 DYYY Hook；关闭总开关只会关闭新模块。发生启动异常时需要在 TrollFools 撤销注入。
 
