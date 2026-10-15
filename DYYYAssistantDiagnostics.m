@@ -122,7 +122,7 @@
 
 #pragma mark - 用户发起的限时页面采集
 
-+ (instancetype)sharedRecorder {
++ (DYYYAssistantDiagnostics *)sharedRecorder {
     static DYYYAssistantDiagnostics *recorder;
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
