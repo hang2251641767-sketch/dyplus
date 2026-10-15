@@ -9,7 +9,7 @@ mkdir -p dist
 cp "$binary" dist/DYPlus.dylib
 
 # 使用上游的 internal Logos 生成器；发现越狱路径或外部库依赖即停止交付。
-xcrun lipo -verify_arch arm64 dist/DYPlus.dylib
+xcrun lipo dist/DYPlus.dylib -verify_arch arm64
 xcrun otool -L dist/DYPlus.dylib | tee dist/dependencies.txt
 while IFS= read -r dependency; do
     case "$dependency" in
