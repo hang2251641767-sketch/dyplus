@@ -1,5 +1,11 @@
 # DYPlus V1.0 审查记录
 
+## 1.1 预览版补充（2026-10-15）
+
+抖音内显示名称改为“抖音助手PLUS”。增加本地续火花计划/好友名单、密友名单与手动接口元数据导出；实际火花检测、一键导入、自动发送、四处列表隐藏仍未接入，执行开关禁用。[源码提交](https://github.com/hang2251641767-sketch/dyplus/commit/688fb574b29b47d10449c8430397870d4cdcd21a) 已通过 [CI 编译、配置测试、签名与导出](https://github.com/hang2251641767-sketch/dyplus/actions/runs/38672369613)。
+
+用户反馈上一版原有功能可用；本版新增配置和诊断页面尚未获得真机验证。继续接入需要目标应用导出的接口诊断文件，操作见 `ASSISTANT-ADAPTATION.md`。
+
 审查对象：`https://github.com/huami1314/DYYY`（本地快照 `upstream-DYYY/`）
 
 ## 已核对

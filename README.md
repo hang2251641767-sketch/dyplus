@@ -15,6 +15,8 @@
 
 用户已反馈 V1.0 原有功能在目标设备可使用；新增预览功能仍需单独验证。
 
+1.1 预览版已通过 [构建与配置测试](https://github.com/hang2251641767-sketch/dyplus/actions/runs/38672369613)，产物对应源码 `688fb574b29b47d10449c8430397870d4cdcd21a`。这只验证编译、配置逻辑和静态检查，不代表发送与隐藏功能已完成。
+
 独立 arm64 `DYPlus.dylib` 已于 2026-10-15 通过 GitHub Actions 编译、链接、签名、架构与依赖检查：[成功构建 #2](https://github.com/hang2251641767-sketch/dyplus/actions/runs/38670031403)。对应源码提交为 `184dc2213469ce10884be08f982e8c4a1ca96f57`。详见 [构建与注入说明](INJECTION.md)。抖音 40.3.0 真机适配仍未验证。
 
 模块注册表目前为重构骨架，开关尚未接管历史 DYYY Hook；关闭总开关只会关闭新模块。发生启动异常时需要在 TrollFools 撤销注入。
@@ -187,7 +189,7 @@ DYYY 可以通过远程 JSON 文件批量应用设置。默认下载地址在 `D
 
 ## 构建与打包
 
-GitHub Actions 在 macOS runner 上准备 Theos，直接构建 arm64 动态库，并上传 `DYPlus-V1.0-arm64-TrollFools`。下载并解压后可取得 `DYPlus.dylib`，无需从 deb 提取。CI 通过表示编译和静态依赖检查成功，真机行为仍需验证。
+GitHub Actions 在 macOS runner 上准备 Theos，直接构建 arm64 动态库，并上传 `DouyinAssistantPLUS-V1.1-preview-arm64-TrollFools`。下载并解压后可取得 `DYPlus.dylib`，无需从 deb 提取。CI 通过表示编译、配置测试和静态依赖检查成功，真机行为仍需验证。
 
 本地构建需要 macOS、Xcode Command Line Tools 和 Theos：
 
